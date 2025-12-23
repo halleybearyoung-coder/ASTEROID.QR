@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo Tag Fabricator | AsteroidWorks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aw-yellow: #ffb700;
+            --aw-dark: #111827;
+            --aw-gray: #374151;
+            --aw-light: #f3f4f6;
+        }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(#1e293b 1px, transparent 1px),
+                linear-gradient(to right, #1e293b 1px, transparent 1px);
+            background-size: 20px 20px, 40px 40px;
+        }
+        .font-header {
+            font-family: 'Teko', sans-serif;
+        }
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 183, 0, 0.5);
+            box-shadow: 0 0 10px var(--aw-yellow);
+            animation: scan 3s linear infinite;
+            z-index: 10;
+            pointer-events: none;
+        }
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .shipping-label {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+        /* Dirty grunge texture overlay */
+        .grunge {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+        /* Custom scrollbar for text areas */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #1f2937; 
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #4b5563; 
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; 
+        }
+    </style>
+</head>
+<body class="text-gray-300 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Top Bar -->
+    <div class="w-full max-w-4xl flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
+        <div class="flex items-center gap-2">
+            <!-- AsteroidWorks Logo Icon Container -->
+            <div id="headerLogoContainer" class="w-8 h-8 flex items-center justify-center">
+                <svg class="w-full h-full text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+            </div>
+            <div class="leading-tight">
+                <h1 class="font-header text-2xl font-bold tracking-widest text-white uppercase">AsteroidWorks</h1>
+                <p class="text-xs text-gray-500 tracking-wider">LOGISTICS DIVISION</p>
+            </div>
+        </div>
+        <div class="text-right hidden sm:block">
+            <div class="text-xs text-yellow-500 font-bold border border-yellow-500 px-2 py-0.5 inline-block">SYSTEM: ONLINE</div>
+            <div class="text-[10px] text-gray-500 mt-1">VER 4.2.3 // CARGO_TAG_FAB</div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Controls Panel -->
+        <div class="bg-gray-800/50 border border-gray-700 p-6 rounded-lg backdrop-blur-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                <svg class="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+            </div>
+
+            <h2 class="text-xl font-header text-white mb-4 flex items-center gap-2">
+                <span class="w-2 h-6 bg-yellow-500 block"></span>
+                INPUT PARAMETERS
+            </h2>
+
+            <div class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Cargo Payload (Content)</label>
+                    <textarea id="qrInput" class="w-full bg-gray-900 border border-gray-600 text-white p-3 font-mono text-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors h-24 resize-none" placeholder="ENTER URL, TEXT, OR WI-FI CREDENTIALS..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Label Header Text</label>
+                    <input type="text" id="labelTitleInput" value="CARGO" class="w-full bg-gray-900 border border-gray-600 text-white p-2 font-mono text-sm focus:border-yellow-500 focus:outline-none uppercase" placeholder="E.G. ASSET, ARCHIVE, SAMPLE">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Tag ID</label>
+                        <input type="text" id="tagId" value="TAG-8821-X" class="w-full bg-gray-900 border border-gray-600 text-yellow-500 p-2 font-mono text-sm focus:border-yellow-500 focus:outline-none uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Priority</label>
+                        <select id="priority" class="w-full bg-gray-900 border border-gray-600 text-white p-2 font-mono text-sm focus:border-yellow-500 focus:outline-none appearance-none">
+                            <option value="STANDARD">STANDARD</option>
+                            <option value="HIGH-VEL">HIGH-VELOCITY</option>
+                            <option value="HAZMAT">HAZMAT</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Destination / Note</label>
+                    <input type="text" id="destination" value="LUNAR_GATEWAY_01" class="w-full bg-gray-900 border border-gray-600 text-white p-2 font-mono text-sm focus:border-yellow-500 focus:outline-none uppercase">
+                </div>
+
+                <!-- Toggle Options -->
+                <div class="border-t border-gray-700 pt-3">
+                    <label class="block text-xs uppercase text-gray-400 mb-2 tracking-wider">Display Options</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="showDestination" checked class="w-4 h-4 rounded border-gray-600 bg-gray-900 text-yellow-600 focus:ring-yellow-500 focus:ring-offset-gray-900">
+                            <span class="text-sm text-gray-300 group-hover:text-white">Destination</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="showId" checked class="w-4 h-4 rounded border-gray-600 bg-gray-900 text-yellow-600 focus:ring-yellow-500 focus:ring-offset-gray-900">
+                            <span class="text-sm text-gray-300 group-hover:text-white">Tracking ID</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="showHash" checked class="w-4 h-4 rounded border-gray-600 bg-gray-900 text-yellow-600 focus:ring-yellow-500 focus:ring-offset-gray-900">
+                            <span class="text-sm text-gray-300 group-hover:text-white">Content Hash</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-xs uppercase text-gray-400 mb-1 tracking-wider">Custom Logo Override</label>
+                    <input type="file" id="logoUpload" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-sm file:font-semibold file:bg-yellow-600 file:text-black hover:file:bg-yellow-500 cursor-pointer">
+                </div>
+
+                <div class="pt-4 border-t border-gray-700 mt-4">
+                    <button id="printBtn" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 px-4 rounded-sm transition-colors flex items-center justify-center gap-2 font-header text-lg tracking-wide">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        PRINT LABEL
+                    </button>
+                    <p class="text-[10px] text-center text-gray-500 mt-2">Sends label to system print dialog. Ensure scale is 100%.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="flex flex-col items-center justify-center relative">
+            <h2 class="text-xl font-header text-white mb-4 w-full flex items-center gap-2">
+                <span class="w-2 h-6 bg-gray-500 block"></span>
+                PREVIEW OUTPUT
+            </h2>
+
+            <!-- The Label Itself -->
+            <div id="labelPreview" class="bg-white text-black p-4 w-full max-w-sm shadow-2xl relative shipping-label overflow-hidden">
+                <!-- Grunge overlay inside the label -->
+                <div class="absolute inset-0 grunge pointer-events-none z-20"></div>
+                
+                <!-- Label Header -->
+                <div class="border-b-4 border-black pb-2 mb-4 flex justify-between items-end">
+                    <div>
+                        <h3 id="labelTitle" class="font-header text-4xl font-bold leading-none">CARGO</h3>
+                        <p class="text-[10px] font-bold tracking-widest">ASTEROIDWORKS // LOGISTICS</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold font-header" id="labelPriority">STANDARD</div>
+                        <div class="text-xs font-mono" id="labelDate">2025-12-22</div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="flex gap-4">
+                    <!-- QR Container -->
+                    <div class="relative w-40 h-40 flex-shrink-0 border-2 border-black p-1">
+                        <canvas id="qrCanvas" class="w-full h-full block"></canvas>
+                        
+                        <!-- Logo Stamp Overlay -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div id="qrLogoContainer" class="bg-white p-1 rounded-full border-2 border-black w-10 h-10 flex items-center justify-center overflow-hidden">
+                                <svg class="w-full h-full text-black" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex-grow flex flex-col justify-between" id="detailsContainer">
+                        <div id="containerDestination">
+                            <p class="text-[10px] font-bold uppercase text-gray-500">Destination</p>
+                            <p class="text-lg font-bold font-mono leading-tight break-words" id="labelDestination">LUNAR_GATEWAY_01</p>
+                        </div>
+                        
+                        <div id="containerId">
+                            <p class="text-[10px] font-bold uppercase text-gray-500">Tracking ID</p>
+                            <p class="font-mono text-xl font-bold border-2 border-black px-2 py-1 inline-block mt-1" id="labelId">TAG-8821-X</p>
+                        </div>
+
+                        <div id="containerHash">
+                            <p class="text-[10px] font-bold uppercase text-gray-500">Content Hash</p>
+                            <p class="font-mono text-[10px] break-all leading-tight text-gray-600" id="labelHash">waiting_for_input...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Barcode Strip -->
+                <div class="mt-4 pt-2 border-t-2 border-black flex justify-between items-end">
+                    <div class="h-8 w-2/3 bg-black" style="mask-image: repeating-linear-gradient(90deg, black, black 2px, transparent 2px, transparent 4px); -webkit-mask-image: repeating-linear-gradient(90deg, black, black 2px, transparent 2px, transparent 4px);"></div>
+                    <div class="text-[10px] font-bold">UN-2941</div>
+                </div>
+            </div>
+
+            <!-- Visual "Scan" effect behind the label -->
+             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-lg -z-10 opacity-30">
+                 <div class="scan-line"></div>
+             </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Initialize QRious
+        const qr = new QRious({
+            element: document.getElementById('qrCanvas'),
+            size: 200,
+            level: 'H', // High error correction allows for the logo overlay
+            value: 'https://asteroidworks.com'
+        });
+
+        // Elements
+        const qrInput = document.getElementById('qrInput');
+        const labelTitleInput = document.getElementById('labelTitleInput');
+        const tagIdInput = document.getElementById('tagId');
+        const priorityInput = document.getElementById('priority');
+        const destinationInput = document.getElementById('destination');
+        
+        // Toggles
+        const showDestinationCheck = document.getElementById('showDestination');
+        const showIdCheck = document.getElementById('showId');
+        const showHashCheck = document.getElementById('showHash');
+
+        const logoUpload = document.getElementById('logoUpload');
+        const printBtn = document.getElementById('printBtn');
+
+        // Output Elements
+        const labelTitle = document.getElementById('labelTitle');
+        const labelPriority = document.getElementById('labelPriority');
+        const labelDestination = document.getElementById('labelDestination');
+        const labelId = document.getElementById('labelId');
+        const labelHash = document.getElementById('labelHash');
+        const labelDate = document.getElementById('labelDate');
+        const headerLogoContainer = document.getElementById('headerLogoContainer');
+        const qrLogoContainer = document.getElementById('qrLogoContainer');
+        
+        // Container Elements for Toggling
+        const containerDestination = document.getElementById('containerDestination');
+        const containerId = document.getElementById('containerId');
+        const containerHash = document.getElementById('containerHash');
+
+        // Set today's date
+        const today = new Date();
+        labelDate.textContent = today.toISOString().split('T')[0];
+
+        // Logo Upload Handler
+        logoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgUrl = e.target.result;
+                    
+                    // Replace Header Logo
+                    headerLogoContainer.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain">`;
+                    
+                    // Replace QR Overlay Logo
+                    qrLogoContainer.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Update Function
+        function updateTag() {
+            const content = qrInput.value.trim() || 'https://asteroidworks.com';
+            
+            // Update QR
+            qr.value = content;
+
+            // Update Text Fields
+            labelTitle.textContent = labelTitleInput.value || 'CARGO';
+            labelPriority.textContent = priorityInput.value;
+            labelDestination.textContent = destinationInput.value || 'UNKNOWN';
+            labelId.textContent = tagIdInput.value || 'NO-ID';
+            
+            // Create a fake "hash" or snippet of the content for the label text
+            let snippet = content.length > 30 ? content.substring(0, 30) + '...' : content;
+            labelHash.textContent = snippet;
+
+            // Handle Visibility Toggles
+            containerDestination.style.display = showDestinationCheck.checked ? 'block' : 'none';
+            containerId.style.display = showIdCheck.checked ? 'block' : 'none';
+            containerHash.style.display = showHashCheck.checked ? 'block' : 'none';
+
+            // Color Coding for Priority
+            const labelEl = document.getElementById('labelPreview');
+            if(priorityInput.value === 'HAZMAT') {
+                labelEl.style.borderTop = '8px solid #ef4444'; // Red
+                labelPriority.style.color = '#ef4444';
+            } else if (priorityInput.value === 'CRITICAL') {
+                labelEl.style.borderTop = '8px solid #000'; // Black
+                labelPriority.style.color = '#000';
+            } else if (priorityInput.value === 'HIGH-VEL') {
+                labelEl.style.borderTop = '8px solid #eab308'; // Yellow
+                labelPriority.style.color = '#000';
+            } else {
+                labelEl.style.borderTop = 'none';
+                labelPriority.style.color = '#000';
+            }
+        }
+
+        // Event Listeners
+        qrInput.addEventListener('input', updateTag);
+        labelTitleInput.addEventListener('input', updateTag);
+        tagIdInput.addEventListener('input', updateTag);
+        priorityInput.addEventListener('change', updateTag);
+        destinationInput.addEventListener('input', updateTag);
+        
+        // Toggle Listeners
+        showDestinationCheck.addEventListener('change', updateTag);
+        showIdCheck.addEventListener('change', updateTag);
+        showHashCheck.addEventListener('change', updateTag);
+
+        // Print Functionality
+        printBtn.addEventListener('click', () => {
+            // We create a new window to print just the label
+            const printContent = document.getElementById('labelPreview').outerHTML;
+            const originalStyles = document.getElementsByTagName('head')[0].innerHTML;
+            
+            const win = window.open('', '', 'height=600,width=800');
+            win.document.write('<html><head>');
+            win.document.write('<title>Print Cargo Tag</title>');
+            // Add Tailwind CDN for the print window so styles work
+            win.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+            win.document.write('<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">');
+            win.document.write('</head><body class="flex items-center justify-center min-h-screen">');
+            win.document.write(printContent);
+            win.document.write('</body></html>');
+            
+            win.document.close();
+            win.focus();
+            
+            // Slight delay to allow styles to load before print dialog
+            setTimeout(() => {
+                win.print();
+                win.close();
+            }, 1000);
+        });
+
+        // Initialize with default values
+        updateTag();
+
+    </script>
+</body>
+</html>
